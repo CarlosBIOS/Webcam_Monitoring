@@ -2,8 +2,11 @@ import smtplib
 import os
 
 
-def send_emails(message: bytes | str) -> None:
-    """Send an email to 'receiver' by 'username'"""
+def send_emails(photo: str) -> None:
+    """
+    Send an email to 'receiver' by 'username'.
+    The parametr photo it's going to attach in the message
+    """
     host: str = 'smtp.gmail.com'
     # Hotmail: smtp.live.com
     # Outlook: outlook.office365.com
@@ -14,6 +17,7 @@ def send_emails(message: bytes | str) -> None:
     username: str = os.getenv('myemail')
     password: str = os.getenv('PASSWORD_PORTFOLIO_WEBSITE')
     receiver: str = username
+    message = ''
 
     with smtplib.SMTP(host, port) as server:
         server.starttls()
