@@ -1,6 +1,7 @@
 import cv2
 import time
 from emailing import send_emails
+from glob import glob
 
 video = cv2.VideoCapture(0)
 # check1, frame1 = video.read()
@@ -20,7 +21,8 @@ video = cv2.VideoCapture(0)
 first_frame = None
 status_list: list = []
 status = 0
-time.sleep(1)
+count = 1
+time.sleep(2)
 while True:
     check, frame = video.read()
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # vai colocar em gray, pois para comparar é + q suficiente!!
@@ -53,6 +55,10 @@ while True:
         rectangle = cv2.rectangle(frame, (x, y), (x+w, h+y), (0, 255, 0), 3)
         if rectangle.any():
             status: int = 1
+            cv2.imread(f'Images/{count}.png', frame)
+            count += 1
+            all_images: list = glob('Images/*.png')
+            image_with_object = all_images[len(all_images) // 2]
 
     status_list.append(status)
     status_list = status_list[-2:]
