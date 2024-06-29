@@ -1,25 +1,27 @@
 import smtplib
 import os
+import imghdr
+from email.message import EmailMessage
 
 
-def send_emails(photo: str) -> None:
+def send_emails(photo_path: str) -> None:
     """
     Send an email to 'receiver' by 'username'.
     The parametr photo it's going to attach in the message
     """
-    host: str = 'smtp.gmail.com'
-    # Hotmail: smtp.live.com
-    # Outlook: outlook.office365.com
-    # Yahoo: smtp.mail.yahoo.com
-    # port: int = 465  # port do SSL
-    port: int = 587  # port do TLS
+    # Temos que criar esta instância, pois como queremos colocar uma foto na mensagem, precisamos de algo mais complexo
+    email_message: EmailMessage = EmailMessage()
+    email_message['Subject'] = 'New customer showed up!'
+    email_message.set_content('Hey, we just saw a new customer!')
 
-    username: str = os.getenv('myemail')
-    password: str = os.getenv('PASSWORD_PORTFOLIO_WEBSITE')
-    receiver: str = username
-    message = ''
+    with open(photo_path, 'rb', encoding='utf-8') as file:
+        content = file.read()
 
-    with smtplib.SMTP(host, port) as server:
-        server.starttls()
-        server.login(username, password)
-        server.sendmail(username, receiver, message.encode('utf-8'))
+    email_message.add_attachment(content, maintype='image', subtype=imghdr.what(None, content))
+
+    gmail = smtplib.SMTP('smtp.gmail.com', 587)
+    gmail.ehlo()
+    gmail.starttls()
+    gmail.login(os.getenv('myemail'), os.getenv('PASSWORD_PORTFOLIO_WEBSITE'))
+    gmail.sendmail(os.getenv('myemail'), os.getenv('myemail'), email_message.as_string())
+    gmail.quit()

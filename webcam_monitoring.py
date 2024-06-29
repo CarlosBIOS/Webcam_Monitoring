@@ -2,6 +2,14 @@ import cv2
 import time
 from emailing import send_emails
 from glob import glob
+import os
+from threading import Thread
+
+
+def clean_folder(images):
+    for image in images:
+        os.remove(image)
+
 
 video = cv2.VideoCapture(0)
 # check1, frame1 = video.read()
@@ -20,8 +28,8 @@ video = cv2.VideoCapture(0)
 # print(frame3)
 first_frame = None
 status_list: list = []
-status = 0
-count = 1
+count: int = 1
+
 time.sleep(2)
 while True:
     check, frame = video.read()
@@ -58,14 +66,21 @@ while True:
             cv2.imread(f'Images/{count}.png', frame)
             count += 1
             all_images: list = glob('Images/*.png')
-            image_with_object = all_images[len(all_images) // 2]
+            image_with_object: str = all_images[len(all_images) // 2]
 
     status_list.append(status)
     status_list = status_list[-2:]
 
     if status_list[0] == 1 and status_list[1] == 0:
-        message: str = ''
-        send_emails(message)
+        # Fazendo threads, a janela já não vai travar, pois são executadas no 2 plano/simultaneamente
+        email_thread = Thread(target=send_emails, args=(image_with_object, ))
+        email_thread.daemon = True  # Permite executar como 2 plano(background)!!
+        clean_thread = Thread(target=clean_folder, args=(all_images))
+        clean_thread.daemon = True  # Permite executar como 2 plano(background)!!
+
+        email_thread.start()
+        clean_thread.start()
+        count: int = 1
 
     cv2.imshow('Video', frame)
 
