@@ -20,8 +20,7 @@ video = cv2.VideoCapture(0)
 first_frame = None
 status_list: list = []
 status = 0
-motion_detected = False  # Flag to track motion state
-time.sleep(2)
+time.sleep(1)
 while True:
     check, frame = video.read()
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # vai colocar em gray, pois para comparar é + q suficiente!!
@@ -35,8 +34,7 @@ while True:
     # cv2.imshow('My Video', gray_frame_gau)
 
     if first_frame is None:
-        first_frame = gray_frame_gau.copy()
-        continue
+        first_frame = gray_frame_gau
 
     delta_frame = cv2.absdiff(first_frame, gray_frame_gau)  # Dá um contraste nos pixes 'novos'!!
     # cv2.imshow('My Video', delta_frame)
@@ -46,23 +44,22 @@ while True:
     dil_frame = cv2.dilate(thresh_frame, None, iterations=2)
     # cv2.imshow('My Video', dil_frame)
 
-    counters, _ = cv2.findContours(dil_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    counters, check = cv2.findContours(dil_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for counter in counters:
         if cv2.contourArea(counter) < 5500:
             continue
         x, y, w, h = cv2.boundingRect(counter)
         rectangle = cv2.rectangle(frame, (x, y), (x+w, h+y), (0, 255, 0), 3)
-        motion_detected = True
+        if rectangle.any():
+            status: int = 1
 
-    # Update status list for motion detection history
-    status_list.append(int(motion_detected))
+    status_list.append(status)
     status_list = status_list[-2:]
 
     if status_list[0] == 1 and status_list[1] == 0:
         message: str = ''
         send_emails(message)
-        motion_detected = False  # Reset motion flag
 
     cv2.imshow('Video', frame)
 
